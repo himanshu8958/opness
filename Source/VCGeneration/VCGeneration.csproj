@@ -170,6 +170,7 @@
     <Compile Include="OrderingAxioms.cs" />
     <Compile Include="RPFP.cs" />
     <Compile Include="StratifiedVC.cs" />
+    <Compile Include="PathConditions.cs"/>
     <Compile Include="VC.cs" />
     <Compile Include="..\version.cs" />
     <Compile Include="Wlp.cs" />

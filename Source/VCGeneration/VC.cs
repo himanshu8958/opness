@@ -1542,6 +1542,22 @@ namespace VC {
       TypecheckingContext tc = new TypecheckingContext(null);
       impl.Typecheck(tc);
 
+      // ########################################
+
+      // By Himanshu
+      // at this point the code is in SSA. And here pass the 'program' to my code which is VCGeneration.PathConditionsVC.doAnalysis() 
+      Block source = impl.Blocks[0];
+      ConvertCFG2DAG(impl);
+
+      //Console.WriteLine("Done");
+      VCGeneration.PathConditionsVC.doAnalysis(impl, source, program);
+      // PathConditions.doAnalysis(impl,source,program);
+      //HashSet<List<Block>> paths = VCGeneration.PathConditionsVC.getPathConditions(impl, source, program); 
+      Environment.Exit(0);
+
+      // ########################################
+
+
       VCExpr vc;
       int assertionCount;
       switch (CommandLineOptions.Clo.vcVariety) {
