@@ -1036,7 +1036,6 @@ namespace VCGeneration {
                 // Console.WriteLine(quant);
 				return quant;                
              } else if( impl.Name.Contains("levenshtein")) {
-                Console.WriteLine("*** LEV ***");
                VCExprVar i = gen.Variable("i", new BasicType(SimpleType.Int));
                VCExprVar j = gen.Variable("j", new BasicType(SimpleType.Int));
                VCExprVar ans = gen.Variable("ans", new BasicType(SimpleType.Int));
@@ -1044,12 +1043,9 @@ namespace VCGeneration {
                VCExprVar ans2 = gen.Variable("ans2", new BasicType(SimpleType.Int));
                VCExprVar ans3 = gen.Variable("ans3", new BasicType(SimpleType.Int));
                VCExprVar costXY = gen.Variable("cost", new BasicType(SimpleType.Int));
-                               Console.WriteLine( "******************** before func *********");
-               Function min = getFunction("min", program);
-               Console.WriteLine( "******************** before func 1*********");
-                Function getCost = getFunction("getCost", program);
+
                VCExpr m1 = gen.Integer(BigNum.FromInt(-1));
-               VCExpr one = gen.Integer(BigNum.FromInt(1));
+               VCExpr one = gen.Integer(BigNum.FromInt(1)); 
                VCExpr zero = gen.Integer(BigNum.FromInt(0));
                VCExpr iM1 = gen.Function(VCExpressionGenerator.AddIOp, i, m1);
                VCExpr jM1 = gen.Function(VCExpressionGenerator.AddIOp, j, m1);
@@ -1058,7 +1054,6 @@ namespace VCGeneration {
                 VCExprVar y = gen.Variable("y", new MapType(Token.NoToken, new List<TypeVariable>()
                 , new List<Microsoft.Boogie.Type>{BasicType.Int}, BasicType.Int));
                
-               Console.WriteLine( "******************** before func 2*********");
                VCExprVar cache = gen.Variable("cache", new MapType(Token.NoToken, new List<TypeVariable>()
                 , new List<Microsoft.Boogie.Type>{BasicType.Int, BasicType.Int}, BasicType.Int ));
                 List<VCExpr> args = new List<VCExpr>();
@@ -1078,17 +1073,9 @@ namespace VCGeneration {
                 VCExpr iShift = gen.Function(VCExpressionGenerator.AddIOp, one, gen.Function(callerFunctionInCode,argsIShift));
                 VCExpr jShift = gen.Function(VCExpressionGenerator.AddIOp, one, gen.Function(callerFunctionInCode,argsJShift));
                 VCExpr noShift = gen.Function(callerFunctionInCode, argsNoShift);
-/* 
-                iShift = gen.Function(VCExpressionGenerator.AddIOp, one, iShift);
-                jShift = gen.Function(VCExpressionGenerator.AddIOp, one, jShift);
- */                Console.WriteLine( "******************** mid inv*********");
-
                 List<VCExpr> iandj = new List<VCExpr>();
                 iandj.Add(i);
                 iandj.Add(j);
-                if(getCost  == null || min == null)
-                Console.WriteLine("************* error *((((((((((((((( ");
-
 
                 List<VCExpr> xSelArgs = new List<VCExpr>();
                 xSelArgs.Add(x); xSelArgs.Add(i);
@@ -1100,7 +1087,6 @@ namespace VCGeneration {
                 VCExpr cost0 = gen.Add(gen.Not(gen.Eq(gen.Select(xSelArgs.ToArray()), gen.Select(ySelArgs.ToArray()))),
                 gen.Eq(costXY, zero));
                 VCExpr cost = gen.Or(cost0, cost1);
-                Console.WriteLine("************* error *1111((((((((((((((( ");
                 noShift = gen.Function(VCExpressionGenerator.AddIOp, cost, noShift);
                 List<VCExpr> argsMin = new List<VCExpr>();
                 argsMin.Add(noShift); argsMin.Add(iShift); argsMin.Add(jShift);
@@ -1111,12 +1097,9 @@ namespace VCGeneration {
                 VCExpr min2 = gen.And(gen.And(lessThan(ans1, ans2, gen), lessThan(ans3, ans1, gen)), gen.Eq(ans, ans3));
                 VCExpr min3 = gen.And(gen.And(lessThan(ans2, ans1, gen), lessThan(ans2, ans3, gen)), gen.Eq(ans, ans2));
                 VCExpr min4 = gen.And(gen.And(lessThan(ans2, ans1, gen), lessThan(ans3, ans2, gen)), gen.Eq(ans, ans3));
-            Console.WriteLine("******22******* error *((((((((((((((( ");
                 VCExpr minimum = gen.Or(gen.Or(gen.Or(min1,min2),min3),min4);
-                
-                /* ##### */
+
                 VCExpr selectQ = gen.Select(args.ToArray());
-                Console.WriteLine( "******************** mid 1*********");
                 VCExpr conjunct2 = gen.And(gen.And(gen.Eq(selectQ, ans),minimum),bind);
                 Console.WriteLine(conjunct2);
                 VCExpr unQuant = gen.Or( conjunct1, conjunct2);

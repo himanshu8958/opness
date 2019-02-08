@@ -1,5 +1,5 @@
 var cache: [[int] int, [int] int, int , int] int;
-procedure {:entrypoint} levenshtein(x:[int] int, y:[int] int, lenX :int, lenY:int ) returns (r: int) modifies cache;{
+procedure {:entrypoint} levenshteinInner(x:[int] int, y:[int] int, lenX :int, lenY:int ) returns (r: int) modifies cache;{
   var cost: int;
   var ans: int;
   var ans1 : int;
