@@ -1149,8 +1149,94 @@ namespace VCGeneration {
                 VCExpr quant =  gen.Forall(vars,triggers,unQuant);
                 Console.WriteLine(quant);
 				return quant;
+            }  else if( impl.Name.Contains("levenshteinInner")) {
+               VCExprVar str1 = gen.Variable("x", new MapType(Token.NoToken, new List<TypeVariable>()
+                , new List<Microsoft.Boogie.Type>{BasicType.Int}, BasicType.Int ));
+                VCExprVar str2 = gen.Variable("y", new MapType(Token.NoToken, new List<TypeVariable>()
+                , new List<Microsoft.Boogie.Type>{BasicType.Int}, BasicType.Int ));
+                VCExprVar lenX = gen.Variable("lenX", new BasicType(SimpleType.Int));
+                VCExprVar lenY = gen.Variable("lenY", new BasicType(SimpleType.Int));
+                VCExprVar cache1 = gen.Variable("cache", new MapType(Token.NoToken, new List<TypeVariable>()
+                , new List<Microsoft.Boogie.Type>{BasicType.List ,BasicType.Int, BasicType.Int}, BasicType.Int ));
+                
+    
 
-            } 
+
+
+
+               VCExprVar i = gen.Variable("i", new BasicType(SimpleType.Int));
+               VCExprVar j = gen.Variable("j", new BasicType(SimpleType.Int));
+               VCExprVar ans = gen.Variable("ans", new BasicType(SimpleType.Int));
+               VCExprVar ans1 = gen.Variable("ans1", new BasicType(SimpleType.Int));
+               VCExprVar ans2 = gen.Variable("ans2", new BasicType(SimpleType.Int));
+               VCExprVar ans3 = gen.Variable("ans3", new BasicType(SimpleType.Int));
+               VCExprVar costXY = gen.Variable("cost", new BasicType(SimpleType.Int));
+
+               VCExpr m1 = gen.Integer(BigNum.FromInt(-1));
+               VCExpr one = gen.Integer(BigNum.FromInt(1)); 
+               VCExpr zero = gen.Integer(BigNum.FromInt(0));
+               VCExpr iM1 = gen.Function(VCExpressionGenerator.AddIOp, i, m1);
+               VCExpr jM1 = gen.Function(VCExpressionGenerator.AddIOp, j, m1);
+               VCExprVar x = gen.Variable("x", new MapType(Token.NoToken, new List<TypeVariable>()
+                , new List<Microsoft.Boogie.Type>{BasicType.Int}, BasicType.Int));
+                VCExprVar y = gen.Variable("y", new MapType(Token.NoToken, new List<TypeVariable>()
+                , new List<Microsoft.Boogie.Type>{BasicType.Int}, BasicType.Int));
+               
+               VCExprVar cache = gen.Variable("cache", new MapType(Token.NoToken, new List<TypeVariable>()
+                , new List<Microsoft.Boogie.Type>{BasicType.Int, BasicType.Int}, BasicType.Int ));
+                List<VCExpr> args = new List<VCExpr>();
+                args.Add(cache);
+                args.Add(i);
+                args.Add(j);
+                VCExpr cacheAccess = gen.Select(args.ToArray());
+                VCExpr conjunct1 = gen.Eq(cacheAccess, m1);
+                List<VCExpr> argsIShift = new List<VCExpr>();
+                List<VCExpr> argsJShift = new List<VCExpr>();
+                List<VCExpr> argsNoShift = new List<VCExpr>();
+                argsIShift.Add(iM1); argsIShift.Add(j);
+                argsJShift.Add(i); argsJShift.Add(jM1);
+                argsNoShift.Add(gen.Function(VCExpressionGenerator.AddIOp, i, m1)); 
+                argsNoShift.Add(gen.Function(VCExpressionGenerator.AddIOp, j, m1)); 
+
+                VCExpr iShift = gen.Function(VCExpressionGenerator.AddIOp, one, gen.Function(callerFunctionInCode,argsIShift));
+                VCExpr jShift = gen.Function(VCExpressionGenerator.AddIOp, one, gen.Function(callerFunctionInCode,argsJShift));
+                VCExpr noShift = gen.Function(callerFunctionInCode, argsNoShift);
+                List<VCExpr> iandj = new List<VCExpr>();
+                iandj.Add(i);
+                iandj.Add(j);
+
+                List<VCExpr> xSelArgs = new List<VCExpr>();
+                xSelArgs.Add(x); xSelArgs.Add(i);
+                List<VCExpr> ySelArgs = new List<VCExpr>();
+                ySelArgs.Add(y); ySelArgs.Add(j);
+
+                VCExpr cost1 = gen.Add(gen.Eq(gen.Select(xSelArgs.ToArray()), gen.Select(ySelArgs.ToArray())),
+                gen.Eq(costXY, one))  ;
+                VCExpr cost0 = gen.Add(gen.Not(gen.Eq(gen.Select(xSelArgs.ToArray()), gen.Select(ySelArgs.ToArray()))),
+                gen.Eq(costXY, zero));
+                VCExpr cost = gen.Or(cost0, cost1);
+                noShift = gen.Function(VCExpressionGenerator.AddIOp, cost, noShift);
+                List<VCExpr> argsMin = new List<VCExpr>();
+                argsMin.Add(noShift); argsMin.Add(iShift); argsMin.Add(jShift);
+
+                
+                VCExpr bind = gen.And(gen.And(gen.Eq(ans1, iShift) , gen.Eq(ans2, jShift)), gen.Eq(ans3, noShift));
+                VCExpr min1 = gen.And(gen.And(lessThan(ans1, ans2, gen), lessThan(ans1, ans3, gen)), gen.Eq(ans, ans1));
+                VCExpr min2 = gen.And(gen.And(lessThan(ans1, ans2, gen), lessThan(ans3, ans1, gen)), gen.Eq(ans, ans3));
+                VCExpr min3 = gen.And(gen.And(lessThan(ans2, ans1, gen), lessThan(ans2, ans3, gen)), gen.Eq(ans, ans2));
+                VCExpr min4 = gen.And(gen.And(lessThan(ans2, ans1, gen), lessThan(ans3, ans2, gen)), gen.Eq(ans, ans3));
+                VCExpr minimum = gen.Or(gen.Or(gen.Or(min1,min2),min3),min4);
+
+                VCExpr selectQ = gen.Select(args.ToArray());
+                VCExpr conjunct2 = gen.And(gen.And(gen.Eq(selectQ, ans),minimum),bind);
+                Console.WriteLine(conjunct2);
+                VCExpr unQuant = gen.Or( conjunct1, conjunct2);
+                List<VCExprVar> vars = new List<VCExprVar>();
+                vars.Add(i); vars.Add(j);
+                List<VCTrigger> trig = new List<VCTrigger>();
+                VCExpr quant = gen.Forall(vars, trig, unQuant);
+                return quant;
+             }
             return null;
         }
         private static VCExpr lessThan( VCExpr a, VCExpr b, VCExpressionGenerator gen) {

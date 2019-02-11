@@ -33,5 +33,4 @@ public class LevenshteinRec {
 	System.out.println("Distance between " + args[0] + " and "
 			   + args[1] + " is " + LD(args[0], args[1]));
     }
-
 }
